@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && incoming().userId == existing().userId;
+
+      function isValidUser(data) {
+        return data.userId == request.auth.uid &&
+               data.fullName is string && data.fullName.size() <= 100 &&
+               data.age is number && data.age > 0 &&
+               data.height is number && data.height > 0 &&
+               data.currentWeight is number && data.currentWeight > 0 &&
+               data.targetWeight is number && data.targetWeight > 0 &&
+               data.gender in ['זכר', 'נקבה'] &&
+               data.activityLevel in ['לא פעיל', 'פעיל מעט', 'פעיל בינוני', 'פעיל מאוד', 'פעיל בצורה קיצונית'] &&
+               data.goal in ['ירידה במשקל', 'עלייה במסת שריר', 'שמירה על המשקל'];
+      }
+
+      // Sub-collections
+      match /meals/{mealId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidMeal(incoming());
+        allow update: if isOwner(userId) && isValidMeal(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId);
+
+        function isValidMeal(data) {
+          return data.userId == request.auth.uid &&
+                 data.name is string && data.name.size() <= 200 &&
+                 data.calories is number && data.calories >= 0 &&
+                 data.protein is number && data.protein >= 0 &&
+                 data.carbs is number && data.carbs >= 0 &&
+                 data.fat is number && data.fat >= 0 &&
+                 data.type in ['בוקר', 'צהריים', 'ערב', 'נשנושים'];
+        }
+      }
+
+      match /weights/{weightId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidWeight(incoming());
+        allow delete: if isOwner(userId);
+
+        function isValidWeight(data) {
+          return data.userId == request.auth.uid &&
+                 data.weight is number && data.weight > 0;
+        }
+      }
+
+      match /fasts/{fastId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidFast(incoming());
+        allow update: if isOwner(userId) && isValidFast(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId);
+
+        function isValidFast(data) {
+          return data.userId == request.auth.uid &&
+                 data.mode in ['16:8', '18:6', '20:4', 'OMAD'] &&
+                 data.status in ['active', 'completed'];
+        }
+      }
+
+      match /water/{waterId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidWater(incoming());
+        allow delete: if isOwner(userId);
+
+        function isValidWater(data) {
+          return data.userId == request.auth.uid &&
+                 data.amount is number && data.amount > 0;
+        }
+      }
+    }
+  }
+}

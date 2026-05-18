@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User's physiological data and nutritional goals.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["זכר", "נקבה"] },
+        "height": { "type": "number", "description": "Height in cm" },
+        "currentWeight": { "type": "number", "description": "Current weight in kg" },
+        "targetWeight": { "type": "number", "description": "Target weight in kg" },
+        "activityLevel": { "type": "string", "enum": ["לא פעיל", "פעיל מעט", "פעיל בינוני", "פעיל מאוד", "פעיל בצורה קיצונית"] },
+        "goal": { "type": "string", "enum": ["ירידה במשקל", "עלייה במסת שריר", "שמירה על המשקל"] },
+        "bmi": { "type": "number" },
+        "bmr": { "type": "number" },
+        "tdee": { "type": "number" },
+        "dailyCalorieTarget": { "type": "number" },
+        "dailyProteinTarget": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fullName", "age", "gender", "height", "currentWeight", "targetWeight", "activityLevel", "goal"]
+    },
+    "Meal": {
+      "title": "Meal Log",
+      "description": "A food entry logged by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "calories": { "type": "number" },
+        "protein": { "type": "number" },
+        "carbs": { "type": "number" },
+        "fat": { "type": "number" },
+        "fiber": { "type": "number" },
+        "type": { "type": "string", "enum": ["בוקר", "צהריים", "ערב", "נשנושים"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["userId", "name", "calories", "protein", "carbs", "fat", "type", "timestamp"]
+    },
+    "WeightLog": {
+      "title": "Weight Log",
+      "description": "A daily weight entry.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "weight": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "weight", "timestamp"]
+    },
+    "FastingSession": {
+      "title": "Fasting Session",
+      "description": "An intermittent fasting record.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "mode": { "type": "string", "enum": ["16:8", "18:6", "20:4", "OMAD"] },
+        "status": { "type": "string", "enum": ["active", "completed"] }
+      },
+      "required": ["userId", "startTime", "mode", "status"]
+    },
+    "WaterIntake": {
+      "title": "Water Intake",
+      "description": "Tracking water consumption.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number", "description": "ml of water" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profile data."
+    },
+    "users/{userId}/meals/{mealId}": {
+      "schema": "Meal",
+      "description": "Food logs for a specific user."
+    },
+    "users/{userId}/weights/{weightId}": {
+      "schema": "WeightLog",
+      "description": "Weight history for a specific user."
+    },
+    "users/{userId}/fasts/{fastId}": {
+      "schema": "FastingSession",
+      "description": "Fasting history for a specific user."
+    },
+    "users/{userId}/water/{waterId}": {
+      "schema": "WaterIntake",
+      "description": "Water tracking for a specific user."
+    }
+  }
+}
